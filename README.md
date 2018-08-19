@@ -5,7 +5,7 @@ App - retranslator
 AppListener - client for test
 
 
-Run upstream.py
+Run python upstream.py
 
 Run App
 

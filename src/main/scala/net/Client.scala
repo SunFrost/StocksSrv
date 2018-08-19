@@ -8,6 +8,7 @@ import akka.util.ByteString
 import akka.io.Tcp._
 
 class Client(remote: InetSocketAddress, listener: ActorRef) extends Actor {
+
   import context.system
   IO(Tcp) ! Connect(remote)
 
@@ -24,12 +25,14 @@ class Client(remote: InetSocketAddress, listener: ActorRef) extends Actor {
       context.become {
         case data: ByteString =>
           connection ! Write(data)
+
         case CommandFailed(w: Write) =>
           listener ! "write failed"
+
         case Received(data) =>
+          //Если в будущем пакеты будут большими они будут фрагментированы и тогда нужно использовать buffering
           listener ! data
-        case "close" =>
-          connection ! Close
+
         case _: ConnectionClosed =>
           listener ! "connection closed"
           context.stop(self)

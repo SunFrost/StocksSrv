@@ -8,7 +8,8 @@ import utils.InetSocketAddressInst
 object Main extends App {
   val actorSystem = ActorSystem("srvSystem")
 
-  //На собеседовании разволновался, InetSocketAddressInst сделал через factory object, без new
+  //На собеседовании раcтерялся и не ответил на вопрос про object как фабрика, без new
+  //InetSocketAddressInst сделал через factory object, инициализация без new
   val con = InetSocketAddressInst("localhost", 5555)
 
   val aggregator = actorSystem.actorOf(Props[Aggregator], "aggregator")
