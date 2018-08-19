@@ -1,10 +1,11 @@
+package utils
+
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import Stocks.Candle
 import akka.util.ByteString
-import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat}
-import spray.json._
+import logic.Stocks.Candle
+import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, _}
 
 import scala.util.Try
 

@@ -1,14 +1,14 @@
+package net
+
 import java.net.InetSocketAddress
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
+import akka.io.Tcp._
 
 class Client(remote: InetSocketAddress, listener: ActorRef) extends Actor {
-
-  import akka.io.Tcp._
   import context.system
-
   IO(Tcp) ! Connect(remote)
 
   def receive = {

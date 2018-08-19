@@ -1,3 +1,5 @@
+package logic
+
 import java.util.Date
 
 object Stocks {
@@ -13,6 +15,10 @@ object Stocks {
         }
         Candle(ticker, timestamp, dls.head.price, high, low, dls.last.price, vol)
       }).toSeq
+  }
+
+  def alignTime(stepDuration: Int): Long = {
+    (stepDuration * 1000) - System.currentTimeMillis % (stepDuration * 1000)
   }
 
 }

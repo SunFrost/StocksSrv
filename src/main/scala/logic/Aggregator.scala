@@ -1,20 +1,25 @@
-import java.text.SimpleDateFormat
+package logic
+
 import java.util.{Calendar, Date}
 
 import Stocks.{Candle, Deal}
 import akka.actor.{Actor, ActorRef, Timers}
+import akka.io.Tcp.Connected
 import akka.util.ByteString
+import logic.Aggregator._
+import utils.UpstreamDecoder
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
-case class Reg()
-case class Unreg()
-case class CurCandles(candles: Seq[Candle])
-
-case class QCandles()//Q - Query
-case class ACandles(candles: Seq[Candle])//A - Answer
+object Aggregator {
+  case class Reg()
+  case class Unreg()
+  case class CurCandles(candles: Seq[Candle])
+  case class QCandles()//Q - Query
+  case class ACandles(candles: Seq[Candle])//A - Answer
+}
 
 class Aggregator extends Actor with Timers {
   private object StepTimer
@@ -30,6 +35,8 @@ class Aggregator extends Actor with Timers {
   setTimer()
 
   def receive = {
+    case Connected(remote, local) =>
+      println(s"connected to upstream: $remote $local")
 
     case Reg() =>
       targets += sender()
@@ -50,10 +57,7 @@ class Aggregator extends Actor with Timers {
       targets.foreach(_ ! CurCandles(curCandles))
 
       candles ++= curCandles
-
-      val calLimit = Calendar.getInstance()
-      calLimit.add(Calendar.SECOND, - STEP_DUR * (STORE_STEP_COUNT + 1))
-      trunc(candles, calLimit.getTime)
+      trunc(candles, getLimitDate(STEP_DUR, STORE_STEP_COUNT))
 
       setTimer()
 
@@ -61,17 +65,20 @@ class Aggregator extends Actor with Timers {
       sender() ! ACandles(candles)
   }
 
-  def trunc(candles: ListBuffer[Candle], date: Date) {//Требует хронологического порядка поступления данных от upstream.py (timestamp)
+  def getLimitDate(duration: Int, stepCount: Int) : Date = {
+    val calLimit = Calendar.getInstance()
+    calLimit.add(Calendar.SECOND, - duration * (stepCount + 1))
+    calLimit.getTime
+  }
+
+  def trunc(candles: ListBuffer[Candle], date: Date) {
+    //Требует хронологического порядка поступления данных от upstream.py (timestamp)
     val count = candles.count(_.timestamp.before(date))
-    println(s"beg ${candles.size}")
     candles.trimStart(count)
-    println(s"end ${candles.size}")
-    println(candles)
   }
 
   def setTimer() {
-    val msAlign = (STEP_DUR * 1000) - System.currentTimeMillis % (STEP_DUR * 1000)
-    timers.startSingleTimer(StepTimer, StepTick, msAlign milliseconds)
+    timers.startSingleTimer(StepTimer, StepTick, Stocks.alignTime(STEP_DUR) milliseconds)
   }
 
 }

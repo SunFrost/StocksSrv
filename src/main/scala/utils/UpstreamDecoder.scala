@@ -1,8 +1,10 @@
-import java.nio.ByteBuffer
-import java.util.{Base64, Date}
+package utils
 
-import Stocks.Deal
+import java.nio.ByteBuffer
+import java.util.Date
+
 import akka.util.ByteString
+import logic.Stocks.Deal
 
 object UpstreamDecoder {
 

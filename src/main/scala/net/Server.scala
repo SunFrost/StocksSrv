@@ -1,14 +1,13 @@
+package net
+
 import java.net.InetSocketAddress
 
 import akka.actor.{Actor, Props}
 import akka.io.{IO, Tcp}
-import akka.util.ByteString
+import Tcp._
 
 class Server extends Actor {
-
-  import Tcp._
   import context.system
-
   IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", 5556))
 
   def receive = {
@@ -20,8 +19,8 @@ class Server extends Actor {
 
     case Connected(remote, local) =>
       val connection = sender()
-      val handler = context.actorOf(Props(classOf[ConnectionHandler], connection))
-      connection ! Register(handler)
+      val handler = context.actorOf(Props(classOf[ConnectionHandler], connection, remote, local))
+      connection ! Register(handler, keepOpenOnPeerClosed = false)
 
   }
 
